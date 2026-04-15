@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CarMate</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar" aria-label="CarMate navigation">
+            <button class="brand-button" type="button" data-screen="start" aria-label="CarMate home">
+                <span class="brand-mark">CM</span>
+                <span>
+                    <strong>CarMate</strong>
+                    <small>Vehicle care</small>
+                </span>
+            </button>
+
+            <nav class="topnav" aria-label="CarMate sections">
+                <button type="button" data-screen="dashboard">Dashboard</button>
+                <button type="button" data-screen="diagnosis">Diagnose</button>
+                <button type="button" data-screen="maintenance">Maintenance</button>
+                <button type="button" data-screen="history">History</button>
+            </nav>
+        </header>
+
+        <main id="app" class="screen-area" tabindex="-1"></main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
