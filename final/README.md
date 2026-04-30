@@ -1,21 +1,32 @@
-# Next.js template
+# CarMate Final Web App
 
-This is a Next.js template with shadcn/ui.
+Frontend-only Next.js prototype for the CS615 group project.
 
-## Adding components
-
-To add components to your app, run the following command:
+## Run Locally
 
 ```bash
-npx shadcn@latest add button
+git clone https://github.com/gaiborjosue/ui-group-six.git
+cd ui-group-six/final
+npm install
+npm run dev
 ```
 
-This will place the ui components in the `components` directory.
+Open the local URL shown in the terminal, usually:
 
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
+```bash
+http://localhost:3000
 ```
+
+If port `3000` is already busy, Next.js will automatically use another port, such as `3001`.
+
+## Build
+
+```bash
+npm run build
+```
+
+## Notes
+
+- The app is UI/UX only.
+- Backend behavior is simulated with local mock data.
+- No real backend server or database is required.
