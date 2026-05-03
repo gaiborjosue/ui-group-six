@@ -1,6 +1,6 @@
 # CarMate Final Web App
 
-Frontend-only Next.js prototype for the CS615 group project.
+Frontend-only Next.js for the CS615 group project.
 
 ## Run Locally
 
