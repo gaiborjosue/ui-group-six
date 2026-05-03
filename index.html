@@ -44,6 +44,22 @@
             border-radius: 6px;
             background: #f5f7f6;
         }
+
+        .command-block {
+            overflow-x: auto;
+            padding: 14px;
+            border-radius: 6px;
+            background: #1f2933;
+            color: #fff;
+        }
+
+        .demo-video {
+            width: 100%;
+            max-height: 540px;
+            border: 1px solid #d9dfdc;
+            border-radius: 6px;
+            background: #000;
+        }
     </style>
 </head>
 <body>
@@ -109,6 +125,50 @@
             <p><strong>Tools:</strong> We used OpenAI Codex/ChatGPT as a design and coding assistant while building the Step 5 prototype in HTML, CSS, and JavaScript.</p>
             <p><strong>Process:</strong> Our sketches, task analysis, and paper-prototype testing guided the direction of the interface. AI helped us move faster from those ideas into a working browser prototype by suggesting layout structure, CSS styling, interaction code, mocked vehicle data, and small pieces of interface text. We used those suggestions as starting material rather than final decisions.</p>
             <p><strong>Human Agency:</strong> The team made the main design choices, including the car-maintenance workflow, the use of a simple static prototype, the dashboard organization, the diagnosis and maintenance flows, and the final visual direction. We revised the AI-assisted output to better match our own paper prototype, removed elements that felt too artificial or unnecessary, adjusted contrast and spacing, and reshaped the home screen so it felt more like our intended product instead of a generic generated mockup.</p>
+        </div>
+    </section>
+
+    <section class="project-section">
+        <h2>Final Implementation</h2>
+        <p>
+            <a
+                class="prototype-link"
+                href="https://github.com/gaiborjosue/ui-group-six/tree/main/final"
+                target="_blank"
+                rel="noopener noreferrer">
+                View Final Implementation Code
+            </a>
+        </p>
+
+        <div class="info-box">
+            <h3>Instructions to Run the Final App</h3>
+            <pre class="command-block"><code>git clone https://github.com/gaiborjosue/ui-group-six.git
+cd ui-group-six/final
+npm install
+npm run dev</code></pre>
+            <p>Open the local URL shown in the terminal, usually <code>http://localhost:3000</code>.</p>
+            <p>If port <code>3000</code> is already busy, Next.js will automatically use another port, such as <code>3001</code>.</p>
+            <p>To build the app, run:</p>
+            <pre class="command-block"><code>npm run build</code></pre>
+            <p>The app is UI/UX only. Backend behavior is simulated with local mock data. No real backend server or database is required.</p>
+        </div>
+
+        <div class="info-box">
+            <h3>Interface Functionality Video</h3>
+                <iframe src="https://drive.google.com/file/d/1bEwuSxzA5cps7HwX_1HDRgWbcrwzobng/preview" width="640" height="480"></iframe>
+            <p><a href="https://drive.google.com/file/d/1bEwuSxzA5cps7HwX_1HDRgWbcrwzobng/preview" target="_blank" rel="noopener noreferrer">Open video file</a></p>
+        </div>
+
+        <div class="info-box">
+            <h3>AI Use Disclosure</h3>
+            <p><strong>Tools:</strong> We used OpenAI Codex/ChatGPT to help build the v0 for the Next.js, React, TypeScript, shadcn/ui, Tailwind, and Three.js interface. We also used it to help organize the project structure, improve UI details, connect mocked interactions, and write small pieces of interface text since our biggest effort was moving from a html/css/js prototype to a more like final implementation.</p>
+            <p><strong>Process:</strong> AI helped create the base structure using the base as our previous high fidelity prototype and helped fine-tune the layout, component organizatio and mock backend behavior. Since most of the things in nextjs initially are boilerplate, we also used it for connecting the glb model car parts with pointers. The AI output was used as a working draft that we reviewed, tested, and adjusted throughout the implementation.</p>
+            <p><strong>Human Agency:</strong> My team and I made the main design decisions, including keeping the project focused on car maintenance tracking, using the Ferrari 3D model, organizing the app into dashboard, parts, maintenance, diagnosis, and records views, and deciding which features should be simulated instead of connected to a real backend. I also directed changes when the UI felt too crowded, when labels did not point clearly to the car parts, when the service plan needed to be more visible, and when the appointment flow needed a more polished calendar picker.
+            
+            I also wanted to give credit to three.js's examples demos they have in their website, since it was helpful for our 3d model:
+                <a href="https://threejs.org/examples/webgl_materials_car.html" target="_blank" rel="noopener noreferrer">Three.js Car Example</a>
+        
+        </p>
         </div>
     </section>
 
