@@ -7,6 +7,8 @@ import { MockBackendProvider } from "@/components/carmate/mock-backend"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { TourProvider } from "@/components/ui/tour"
+import { carmateTours } from "@/lib/carmate-tour"
 import { cn } from "@/lib/utils"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
@@ -43,7 +45,9 @@ export default function RootLayout({
         <ThemeProvider>
           <TooltipProvider>
             <MockBackendProvider>
-              <AppShell>{children}</AppShell>
+              <TourProvider tours={carmateTours}>
+                <AppShell>{children}</AppShell>
+              </TourProvider>
             </MockBackendProvider>
           </TooltipProvider>
           <Toaster />

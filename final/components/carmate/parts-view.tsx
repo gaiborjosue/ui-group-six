@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import {
   BookmarkCheckIcon,
@@ -35,6 +35,7 @@ import { InfoRow, progressClasses, StatusBadge } from "./shared"
 
 export function PartsView() {
   const [selectedPart, setSelectedPart] = useState<PartKey>(getStoredPart)
+  const [highlightPart, setHighlightPart] = useState<PartKey | null>(null)
   const [shopOpen, setShopOpen] = useState(false)
   const planRef = useRef<HTMLElement>(null)
   const { removeEstimate, saveEstimate, savedEstimates } = useMockBackend()
@@ -67,8 +68,27 @@ export function PartsView() {
     [savedEstimates]
   )
 
+  useEffect(() => {
+    const storedHighlight = window.localStorage.getItem("carmate:highlight-part")
+
+    if (!isPartKey(storedHighlight)) {
+      return
+    }
+
+    window.localStorage.removeItem("carmate:highlight-part")
+
+    const frame = window.requestAnimationFrame(() => setHighlightPart(storedHighlight))
+    const timeout = window.setTimeout(() => setHighlightPart(null), 4200)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.clearTimeout(timeout)
+    }
+  }, [])
+
   function selectPart(part: PartKey) {
     setSelectedPart(part)
+    setHighlightPart(null)
     window.localStorage.setItem("carmate:selected-part", part)
     toast.info(`${getPart(part).name} selected`)
   }
@@ -111,7 +131,12 @@ export function PartsView() {
           onViewPlan={viewPlan}
         />
 
-        <aside className="rounded-lg border bg-card p-5">
+        <aside
+          className={cn(
+            "rounded-lg border bg-card p-5",
+            highlightPart === activePart.key && "diagnosis-part-pulse"
+          )}
+        >
           <StatusBadge status={activePart.status} label={activePart.label} />
           <h2 className="mt-3 text-2xl font-semibold">{activePart.name}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{activePart.summary}</p>
@@ -183,7 +208,10 @@ export function PartsView() {
                 <TableRow
                   key={part.key}
                   data-state={selectedPart === part.key ? "selected" : undefined}
-                  className="cursor-pointer"
+                  className={cn(
+                    "cursor-pointer",
+                    highlightPart === part.key && "diagnosis-queue-pulse"
+                  )}
                   onClick={() => selectPart(part.key)}
                 >
                   <TableCell className="font-medium">{part.name}</TableCell>
@@ -213,7 +241,8 @@ export function PartsView() {
               type="button"
               className={cn(
                 "rounded-lg border bg-background p-3 text-left transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                selectedPart === part.key && "border-primary"
+                selectedPart === part.key && "border-primary",
+                highlightPart === part.key && "diagnosis-queue-pulse"
               )}
               onClick={() => selectPart(part.key)}
             >

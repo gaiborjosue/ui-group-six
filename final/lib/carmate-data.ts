@@ -233,6 +233,93 @@ export function buildDiagnosis(code: string, issue: string, custom: string): Dia
   const normalizedCustom = custom.trim().toLowerCase()
 
   if (
+    normalizedCode === "P0300" ||
+    /^P030[1-8]$/.test(normalizedCode) ||
+    normalizedCustom.includes("cylinder misfire") ||
+    normalizedCustom.includes("random misfire") ||
+    normalizedCustom.includes("multiple cylinder misfire")
+  ) {
+    const cylinderMatch = normalizedCode.match(/^P030([1-8])$/)
+
+    return {
+      title: cylinderMatch
+        ? `Likely cylinder ${cylinderMatch[1]} misfire`
+        : "Likely random or multiple cylinder misfire",
+      urgency: "urgent",
+      summary:
+        "Misfire codes can damage the catalytic converters on a performance engine if the car keeps being driven hard.",
+      relatedPart: "engine",
+      next: cylinderMatch
+        ? `Inspect cylinder ${cylinderMatch[1]} spark plug, ignition coil, injector, wiring, and compression.`
+        : "Inspect spark plugs, coils, injectors, fuel delivery, intake air, and compression.",
+      estimate: getPart("engine").estimate,
+    }
+  }
+
+  if (
+    ["P0171", "P0174", "P2187", "P2189"].includes(normalizedCode) ||
+    normalizedCustom.includes("too lean")
+  ) {
+    return {
+      title: "Lean air/fuel condition",
+      urgency: "urgent",
+      summary:
+        "A lean condition can come from unmetered air, fuel delivery issues, or airflow sensor readings that are out of range.",
+      relatedPart: "engine",
+      next: "Check for intake or vacuum leaks, inspect MAF readings, and verify fuel pressure and delivery.",
+      estimate: getPart("engine").estimate,
+    }
+  }
+
+  if (
+    ["P2188", "P2190", "P0004"].includes(normalizedCode) ||
+    normalizedCustom.includes("too rich") ||
+    normalizedCustom.includes("fuel volume regulator")
+  ) {
+    return {
+      title: "Fuel regulation or rich idle condition",
+      urgency: "urgent",
+      summary:
+        "Rich idle and fuel regulation faults can point to sensor readings, injector leakage, wiring, or fuel control issues.",
+      relatedPart: "engine",
+      next: "Inspect fuel regulation wiring, MAF readings, injector behavior, and air/fuel sensor data.",
+      estimate: getPart("engine").estimate,
+    }
+  }
+
+  if (
+    ["P0420", "P0430"].includes(normalizedCode) ||
+    normalizedCustom.includes("catalyst efficiency") ||
+    normalizedCustom.includes("converter too hot") ||
+    normalizedCustom.includes("catalyst temperature")
+  ) {
+    return {
+      title: "Catalyst or exhaust temperature warning",
+      urgency: "urgent",
+      summary:
+        "Catalyst efficiency or overheating warnings should be treated quickly because misfires or excess fuel can overheat the exhaust system.",
+      relatedPart: "engine",
+      next: "Check for active misfires, fuel dump, oxygen sensor readings, exhaust leaks, and catalytic converter temperature.",
+      estimate: getPart("engine").estimate,
+    }
+  }
+
+  if (
+    ["P0455", "P0442"].includes(normalizedCode) ||
+    normalizedCustom.includes("evap")
+  ) {
+    return {
+      title: "EVAP leak detected",
+      urgency: "soon",
+      summary:
+        "EVAP leak codes usually point to a fuel vapor system seal issue rather than an immediate drivability problem.",
+      relatedPart: "fluids",
+      next: "Check the fuel cap seal, EVAP hoses, purge valve, and vapor system connections.",
+      estimate: getPart("fluids").estimate,
+    }
+  }
+
+  if (
     normalizedCode.includes("P0301") ||
     issue === "rough-idle" ||
     normalizedCustom.includes("shake") ||

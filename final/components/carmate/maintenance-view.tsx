@@ -1,24 +1,6 @@
-"use client"
-
-import { useMemo, useState } from "react"
-
 import { MaintenancePanel } from "@/components/carmate/maintenance-panel"
-import { ShopSheet } from "@/components/carmate/overlays"
-import {
-  getPart,
-  type PartKey,
-} from "@/lib/carmate-data"
 
 export function MaintenanceView() {
-  const [selectedPart, setSelectedPart] = useState<PartKey>(getStoredPart)
-  const [shopOpen, setShopOpen] = useState(false)
-  const activePart = useMemo(() => getPart(selectedPart), [selectedPart])
-
-  function selectPart(part: PartKey) {
-    setSelectedPart(part)
-    window.localStorage.setItem("carmate:selected-part", part)
-  }
-
   return (
     <div className="grid gap-5">
       <div className="max-w-3xl">
@@ -32,36 +14,7 @@ export function MaintenanceView() {
         </p>
       </div>
 
-      <MaintenancePanel
-        selectedPart={activePart}
-        onSelectPart={selectPart}
-        onShop={() => setShopOpen(true)}
-      />
-
-      <ShopSheet open={shopOpen} onOpenChange={setShopOpen} part={activePart} />
+      <MaintenancePanel />
     </div>
-  )
-}
-
-function getStoredPart(): PartKey {
-  if (typeof window === "undefined") {
-    return "engine"
-  }
-
-  const stored = window.localStorage.getItem("carmate:selected-part")
-
-  return isPartKey(stored) ? stored : "engine"
-}
-
-function isPartKey(value: string | null): value is PartKey {
-  return (
-    value === "engine" ||
-    value === "battery" ||
-    value === "brakes" ||
-    value === "tires" ||
-    value === "fluids" ||
-    value === "lights" ||
-    value === "body" ||
-    value === "wipers"
   )
 }

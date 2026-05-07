@@ -1,6 +1,5 @@
 "use client"
 
-import { MapPinIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -13,28 +12,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
-import {
-  parts,
-  type Part,
-  type PartKey,
-  type Status,
-} from "@/lib/carmate-data"
+import { type Status } from "@/lib/carmate-data"
 import { cn } from "@/lib/utils"
 import { useMockBackend } from "./mock-backend"
-import { InfoRow, progressClasses, StatusBadge } from "./shared"
+import { progressClasses, StatusBadge } from "./shared"
 
-type MaintenancePanelProps = {
-  selectedPart: Part
-  onSelectPart: (part: PartKey) => void
-  onShop: () => void
-}
-
-export function MaintenancePanel({
-  selectedPart,
-  onSelectPart,
-  onShop,
-}: MaintenancePanelProps) {
+export function MaintenancePanel() {
   const {
     maintenanceTasks,
     completeMaintenanceTask,
@@ -126,57 +109,6 @@ export function MaintenancePanel({
             )}
           </section>
         ))}
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="rounded-lg border bg-card p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-semibold">All part areas</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Select a component to review status, cost range, and recommended next step.
-              </p>
-            </div>
-            <StatusBadge status={selectedPart.status} label={`Selected: ${selectedPart.name}`} />
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {parts.map((part) => (
-              <button
-                key={part.key}
-                type="button"
-                className={cn(
-                  "rounded-lg border bg-background p-4 text-left transition hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  selectedPart.key === part.key && "border-primary"
-                )}
-                onClick={() => onSelectPart(part.key)}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <strong>{part.name}</strong>
-                  <StatusBadge status={part.status} label={part.label} />
-                </div>
-                <p className="mt-2 text-sm text-muted-foreground">{part.next}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-lg border bg-card p-5">
-          <StatusBadge status={selectedPart.status} label={selectedPart.label} />
-          <h2 className="mt-3 text-xl font-semibold">{selectedPart.name}</h2>
-          <p className="mt-2 text-sm text-muted-foreground">{selectedPart.summary}</p>
-          <Separator className="my-4" />
-          <InfoRow label="Suggested next step" value={selectedPart.next} />
-          <InfoRow label="Estimated range" value={selectedPart.estimate} />
-          <Progress
-            value={selectedPart.progress}
-            className={cn("mt-4 h-2", progressClasses[selectedPart.status])}
-          />
-          <Button className="mt-4 w-full" onClick={onShop}>
-            <MapPinIcon data-icon="inline-start" />
-            Find nearby shop
-          </Button>
-        </div>
       </div>
     </div>
   )

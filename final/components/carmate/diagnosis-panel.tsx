@@ -31,16 +31,24 @@ import { InfoRow, StatusBadge } from "./shared"
 
 type DiagnosisPanelProps = {
   issue: string
+  scannerCode: string
+  customIssue: string
   diagnosis: Diagnosis | null
   setIssue: (issue: string) => void
+  setScannerCode: (code: string) => void
+  setCustomIssue: (issue: string) => void
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onViewPart: (part: PartKey) => void
 }
 
 export function DiagnosisPanel({
   issue,
+  scannerCode,
+  customIssue,
   diagnosis,
   setIssue,
+  setScannerCode,
+  setCustomIssue,
   onSubmit,
   onViewPart,
 }: DiagnosisPanelProps) {
@@ -57,7 +65,14 @@ export function DiagnosisPanel({
             <FieldGroup className="grid gap-4 md:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="code">Scanner code</FieldLabel>
-                <Input id="code" name="code" placeholder="Example: P0301" autoComplete="off" />
+                <Input
+                  id="code"
+                  name="code"
+                  placeholder="Example: P0301"
+                  autoComplete="off"
+                  value={scannerCode}
+                  onChange={(event) => setScannerCode(event.target.value)}
+                />
                 <FieldDescription>OBD-II codes usually start with a letter.</FieldDescription>
               </Field>
 
@@ -86,6 +101,8 @@ export function DiagnosisPanel({
                 id="custom"
                 name="custom"
                 placeholder="Example: the car vibrates at highway speed after rain"
+                value={customIssue}
+                onChange={(event) => setCustomIssue(event.target.value)}
               />
               <FieldDescription>
                 Include sounds, smells, warning lights, or when the problem happens.
@@ -109,7 +126,11 @@ export function DiagnosisPanel({
             <Button
               type="button"
               variant="outline"
-              onClick={() => toast.info("Demo scanner code P0301 ready to type")}
+              onClick={() => {
+                setScannerCode("P0301")
+                setIssue("rough-idle")
+                toast.success("Demo scanner code P0301 added")
+              }}
             >
               Use P0301
             </Button>

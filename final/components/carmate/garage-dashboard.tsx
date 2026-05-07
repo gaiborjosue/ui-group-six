@@ -4,13 +4,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import {
-  AlertTriangleIcon,
-  CalendarClockIcon,
   ClipboardListIcon,
-  HistoryIcon,
   MessageSquareTextIcon,
   PackageSearchIcon,
-  ShieldCheckIcon,
   WrenchIcon,
   type LucideIcon,
 } from "lucide-react"
@@ -33,7 +29,7 @@ import {
   type PartKey,
 } from "@/lib/carmate-data"
 import { useMockBackend } from "./mock-backend"
-import { InfoRow, MetricCard, StatusBadge } from "./shared"
+import { InfoRow, StatusBadge } from "./shared"
 import { VehicleDialog } from "./vehicle-dialog"
 
 export function GarageDashboard() {
@@ -65,19 +61,24 @@ export function GarageDashboard() {
             <div className="max-w-3xl">
               <StatusBadge status="urgent" label={`${dueNow} items due now`} />
               <h1 className="mt-3 text-3xl font-semibold tracking-normal md:text-5xl">
-                Garage overview
+                {vehicle.trim}
               </h1>
               <p className="mt-3 max-w-2xl text-muted-foreground">
-                Start from the vehicle, pick a visible part, then move into diagnosis,
-                maintenance, records, or part planning from dedicated pages.
+                Monitor inspections, maintenance planning, and service records from one
+                workspace.
               </p>
             </div>
-            <Button asChild>
-              <Link href="/diagnose">
-                <MessageSquareTextIcon data-icon="inline-start" />
-                Diagnose issue
-              </Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild>
+                <Link href="/diagnose">
+                  <MessageSquareTextIcon data-icon="inline-start" />
+                  Diagnose issue
+                </Link>
+              </Button>
+              <Button variant="outline" onClick={() => setVehicleOpen(true)}>
+                Edit vehicle
+              </Button>
+            </div>
           </div>
 
           <VehicleStage
@@ -92,40 +93,38 @@ export function GarageDashboard() {
         </div>
 
         <aside className="grid content-start gap-4">
-          <Card>
+          <Card data-tour-step-id="garage-status">
             <CardHeader>
-              <CardTitle>Vehicle snapshot</CardTitle>
-              <CardDescription>Current mileage, value, and next service window.</CardDescription>
+              <CardTitle>Garage status</CardTitle>
+              <CardDescription>Current maintenance signals and quick actions.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3">
-              <InfoRow label="Vehicle" value={`${vehicle.year} ${vehicle.make} ${vehicle.model}`} />
-              <InfoRow label="Mileage" value={`${vehicle.mileage} miles`} />
-              <InfoRow label="Estimated value" value={vehicle.value} />
-              <InfoRow label="Next service" value="19,500 miles or March 2027" />
+              <InfoRow label="Due now" value={`${dueNow} maintenance items`} />
+              <InfoRow label="Upcoming" value={`${upcoming} planned items`} />
+              <InfoRow label="Healthy" value={`${healthy} tracked areas`} />
+              <InfoRow label="Records" value={`${serviceRecords.length} saved visits`} />
             </CardContent>
-            <CardFooter className="justify-between gap-3">
-              <span className="text-sm text-muted-foreground">Maintenance reminders</span>
-              <Switch
-                checked={remindersEnabled}
-                onCheckedChange={setRemindersEnabled}
-                aria-label="Maintenance reminders"
-              />
+            <CardFooter className="flex-col items-stretch gap-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm text-muted-foreground">Maintenance reminders</span>
+                <Switch
+                  checked={remindersEnabled}
+                  onCheckedChange={setRemindersEnabled}
+                  aria-label="Maintenance reminders"
+                />
+              </div>
+              <Button asChild variant="outline">
+                <Link href="/maintenance">
+                  <WrenchIcon data-icon="inline-start" />
+                  Review schedule
+                </Link>
+              </Button>
             </CardFooter>
           </Card>
-          <Button variant="outline" onClick={() => setVehicleOpen(true)}>
-            Edit vehicle profile
-          </Button>
-
-          <div className="grid grid-cols-2 gap-3">
-            <MetricCard icon={AlertTriangleIcon} label="Due now" value={String(dueNow)} detail="Needs action" />
-            <MetricCard icon={CalendarClockIcon} label="Upcoming" value={String(upcoming)} detail="Planned work" />
-            <MetricCard icon={ShieldCheckIcon} label="Healthy" value={String(healthy)} detail="No action needed" />
-            <MetricCard icon={HistoryIcon} label="Records" value={String(serviceRecords.length)} detail="Saved visits" />
-          </div>
         </aside>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" data-tour-step-id="main-actions">
         <ActionCard
           href="/diagnose"
           icon={MessageSquareTextIcon}

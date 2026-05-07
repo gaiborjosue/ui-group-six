@@ -1,24 +1,31 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 import {
   ClipboardListIcon,
+  CircleHelpIcon,
   GaugeIcon,
   MapPinIcon,
   MessageSquareTextIcon,
+  MoonIcon,
   PackageSearchIcon,
   Share2Icon,
+  SunIcon,
   WrenchIcon,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { ExportDialog, ShopSheet } from "@/components/carmate/overlays"
+import { VehicleSafetySummary } from "@/components/carmate/vehicle-safety-summary"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
+import { useTour } from "@/components/ui/tour"
 import { getPart } from "@/lib/carmate-data"
 import { cn } from "@/lib/utils"
 import { useMockBackend } from "./mock-backend"
@@ -33,15 +40,44 @@ const navItems = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [exportOpen, setExportOpen] = useState(false)
   const [shopOpen, setShopOpen] = useState(false)
   const { vehicle, lastUpdated } = useMockBackend()
+  const { start } = useTour()
+
+  useEffect(() => {
+    if (pathname !== "/") {
+      return
+    }
+
+    if (window.localStorage.getItem("carmate:onboarding-tour-seen")) {
+      return
+    }
+
+    const timeout = window.setTimeout(() => {
+      window.localStorage.setItem("carmate:onboarding-tour-seen", "true")
+      start("garage-overview")
+    }, 700)
+
+    return () => window.clearTimeout(timeout)
+  }, [pathname, start])
+
+  function startGarageTour() {
+    if (pathname !== "/") {
+      router.push("/")
+      window.setTimeout(() => start("garage-overview"), 300)
+      return
+    }
+
+    start("garage-overview")
+  }
 
   return (
     <div className="min-h-svh bg-muted/30">
       <header className="sticky top-0 border-b bg-background/95 backdrop-blur lg:hidden">
         <div className="flex min-h-14 items-center justify-between gap-3 px-4">
-          <Link href="/" className="flex min-w-0 items-center gap-2">
+          <Link href="/" className="flex min-w-0 items-center gap-2" data-tour-step-id="active-vehicle">
             <Avatar className="size-8 rounded-lg">
               <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
                 CM
@@ -50,6 +86,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="truncate text-sm font-semibold">CarMate</span>
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeToggle compact />
+            <Button variant="outline" size="icon-sm" onClick={startGarageTour}>
+              <CircleHelpIcon />
+              <span className="sr-only">Start onboarding tour</span>
+            </Button>
             <Button variant="outline" size="icon-sm" onClick={() => setExportOpen(true)}>
               <Share2Icon />
               <span className="sr-only">Share service information</span>
@@ -61,7 +102,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <ScrollArea>
-          <nav className="flex gap-1 px-4 pb-2" aria-label="Mobile navigation">
+          <nav
+            className="flex gap-1 px-4 pb-2"
+            aria-label="Mobile navigation"
+            data-tour-step-id="main-navigation"
+          >
             {navItems.map((item) => (
               <Button
                 key={item.href}
@@ -97,7 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </span>
                 </span>
               </Link>
-              <div className="rounded-lg border bg-card p-3">
+              <div className="rounded-lg border bg-card p-3" data-tour-step-id="active-vehicle">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-xs font-medium uppercase text-muted-foreground">
                     Active vehicle
@@ -107,7 +152,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </Badge>
                 </div>
                 <strong className="mt-2 block text-sm">
-                  {vehicle.trim}
+                  {vehicle.year} {vehicle.make} {vehicle.model}
                 </strong>
                 <span className="text-xs text-muted-foreground">
                   {vehicle.mileage} miles, value {vehicle.value}
@@ -115,12 +160,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="mt-1 block text-xs text-muted-foreground">
                   Updated {lastUpdated}
                 </span>
+                <VehicleSafetySummary vehicle={vehicle} />
               </div>
             </div>
 
             <Separator />
 
-            <nav className="grid gap-1 p-3" aria-label="Sidebar navigation">
+            <nav
+              className="grid gap-1 p-3"
+              aria-label="Sidebar navigation"
+              data-tour-step-id="main-navigation"
+            >
               {navItems.map((item) => (
                 <Link
                   key={item.href}
@@ -137,6 +187,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="mt-auto p-4">
+              <ThemeToggle />
               <div className="grid gap-2 rounded-lg border bg-muted/40 p-3 text-sm">
                 <strong>Backend is being simulated.</strong>
                 <div className="grid gap-2">
@@ -147,6 +198,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   <Button size="sm" onClick={() => setShopOpen(true)}>
                     <MapPinIcon data-icon="inline-start" />
                     Nearby shops
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={startGarageTour}>
+                    <CircleHelpIcon data-icon="inline-start" />
+                    Tour
                   </Button>
                 </div>
               </div>
@@ -169,4 +224,51 @@ function isActive(pathname: string, href: string) {
   }
 
   return pathname.startsWith(href)
+}
+
+function ThemeToggle({ compact = false }: { compact?: boolean }) {
+  const [mounted, setMounted] = useState(false)
+  const { resolvedTheme, setTheme } = useTheme()
+  const isDark = resolvedTheme === "dark"
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setMounted(true))
+
+    return () => window.cancelAnimationFrame(frame)
+  }, [])
+
+  function toggleTheme() {
+    setTheme(isDark ? "light" : "dark")
+  }
+
+  if (compact) {
+    return (
+      <Button
+        variant="outline"
+        size="icon-sm"
+        onClick={toggleTheme}
+        disabled={!mounted}
+      >
+        {isDark ? <SunIcon /> : <MoonIcon />}
+        <span className="sr-only">Toggle light and dark mode</span>
+      </Button>
+    )
+  }
+
+  return (
+    <div className="mb-3 rounded-lg border bg-card p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          {isDark ? <MoonIcon className="size-4" /> : <SunIcon className="size-4" />}
+          <span className="text-sm font-medium">{isDark ? "Dark mode" : "Light mode"}</span>
+        </div>
+        <Switch
+          checked={isDark}
+          onCheckedChange={toggleTheme}
+          disabled={!mounted}
+          aria-label="Toggle light and dark mode"
+        />
+      </div>
+    </div>
+  )
 }

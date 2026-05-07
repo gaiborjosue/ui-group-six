@@ -21,7 +21,7 @@ export function VehicleStage({
   onViewPlan,
 }: VehicleStageProps) {
   return (
-    <section className="relative">
+    <section className="relative" data-tour-step-id="vehicle-stage">
       <CarScene selectedPart={selectedPart} onSelectPart={onSelectPart} />
 
       <div className="absolute left-4 top-4 max-w-xs rounded-lg border border-background/20 bg-background/90 p-4 shadow-sm backdrop-blur">

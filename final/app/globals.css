@@ -127,3 +127,40 @@
     @apply font-sans;
     }
 }
+
+@layer utilities {
+  .diagnosis-part-pulse {
+    animation: diagnosis-part-pulse 1.4s ease-in-out 3;
+  }
+
+  .diagnosis-queue-pulse {
+    animation: diagnosis-queue-pulse 1.4s ease-in-out 3;
+  }
+}
+
+@keyframes diagnosis-part-pulse {
+  0%,
+  100% {
+    border-color: var(--border);
+    box-shadow: 0 0 0 0 oklch(0.577 0.245 27.325 / 0);
+  }
+
+  45% {
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 4px oklch(0.577 0.245 27.325 / 0.14),
+      0 0 22px oklch(0.577 0.245 27.325 / 0.28);
+  }
+}
+
+@keyframes diagnosis-queue-pulse {
+  0%,
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 0 oklch(0.577 0.245 27.325 / 0);
+  }
+
+  45% {
+    background-color: oklch(0.577 0.245 27.325 / 0.12);
+    box-shadow: inset 4px 0 0 var(--destructive);
+  }
+}
