@@ -11,6 +11,7 @@ import {
   QrCodeIcon,
   Share2Icon,
 } from "lucide-react"
+import { jsPDF } from "jspdf"
 import QRCode from "qrcode"
 import { toast } from "sonner"
 
@@ -45,9 +46,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import type { Part } from "@/lib/carmate-data"
+import type { Part, Vehicle } from "@/lib/carmate-data"
 import { cn } from "@/lib/utils"
-import { useMockBackend } from "./mock-backend"
+import { type ServiceRecord, useMockBackend } from "./mock-backend"
 
 export function ExportDialog({
   open,
@@ -64,20 +65,9 @@ export function ExportDialog({
     {
       label: "Download report",
       icon: DownloadIcon,
-      action: () => {
-        downloadTextFile(
-          "carmate-service-report.txt",
-          [
-            `${vehicle.year} ${vehicle.make} ${vehicle.model}`,
-            `${vehicle.mileage} miles`,
-            "",
-            ...serviceRecords.map(
-              (record) =>
-                `${record.date} | ${record.mileage} | ${record.service} | ${record.shop} | ${record.notes}`
-            ),
-          ].join("\n")
-        )
-        toast.success("Report downloaded")
+      action: async () => {
+        await downloadPdfReport(vehicle, serviceRecords, mechanicShareUrl)
+        toast.success("PDF report downloaded")
       },
     },
     {
@@ -332,6 +322,198 @@ function downloadTextFile(filename: string, content: string) {
   link.download = filename
   link.click()
   URL.revokeObjectURL(url)
+}
+
+async function downloadPdfReport(
+  vehicle: Vehicle,
+  serviceRecords: ServiceRecord[],
+  shareUrl: string
+) {
+  const doc = new jsPDF({ unit: "pt", format: "letter" })
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const margin = 42
+  const contentWidth = pageWidth - margin * 2
+  const qrCodeUrl = await QRCode.toDataURL(shareUrl, {
+    width: 160,
+    margin: 1,
+    color: {
+      dark: "#111827",
+      light: "#ffffff",
+    },
+  })
+
+  drawReportHeader(doc, vehicle, pageWidth)
+
+  let y = 126
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(13)
+  doc.setTextColor(17, 24, 39)
+  doc.text("Vehicle summary", margin, y)
+  y += 14
+
+  doc.setDrawColor(229, 231, 235)
+  doc.setFillColor(249, 250, 251)
+  doc.roundedRect(margin, y, contentWidth, 126, 10, 10, "FD")
+
+  drawPdfLabelValue(doc, "Vehicle", `${vehicle.year} ${vehicle.make} ${vehicle.model}`, margin + 18, y + 30)
+  drawPdfLabelValue(doc, "Trim", vehicle.trim, margin + 18, y + 58)
+  drawPdfLabelValue(doc, "Mileage", `${vehicle.mileage} miles`, margin + 18, y + 86)
+  drawPdfLabelValue(doc, "Estimated value", vehicle.value, margin + 220, y + 30)
+  drawPdfLabelValue(doc, "VIN", vehicle.vin, margin + 220, y + 58)
+  drawPdfLabelValue(
+    doc,
+    "Generated",
+    new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(new Date()),
+    margin + 220,
+    y + 86
+  )
+
+  doc.addImage(qrCodeUrl, "PNG", pageWidth - margin - 72, y + 22, 62, 62)
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(7)
+  doc.setTextColor(107, 114, 128)
+  doc.text("Mechanic share", pageWidth - margin - 76, y + 96)
+  y += 158
+
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(13)
+  doc.setTextColor(17, 24, 39)
+  doc.text("Service history", margin, y)
+  y += 18
+
+  if (serviceRecords.length === 0) {
+    drawEmptyPdfState(doc, "No service records have been saved yet.", margin, y, contentWidth)
+    y += 70
+  } else {
+    serviceRecords.forEach((record) => {
+      const notes = doc.splitTextToSize(record.notes, contentWidth - 32) as string[]
+      const cardHeight = Math.max(94, 76 + notes.length * 12)
+
+      if (y + cardHeight > pageHeight - 58) {
+        doc.addPage()
+        y = margin
+      }
+
+      doc.setDrawColor(229, 231, 235)
+      doc.setFillColor(255, 255, 255)
+      doc.roundedRect(margin, y, contentWidth, cardHeight, 8, 8, "FD")
+
+      doc.setFont("helvetica", "bold")
+      doc.setFontSize(10)
+      doc.setTextColor(17, 24, 39)
+      doc.text(record.service, margin + 16, y + 22)
+
+      doc.setFont("helvetica", "normal")
+      doc.setFontSize(8.5)
+      doc.setTextColor(75, 85, 99)
+      doc.text(`${record.date} · ${record.mileage} miles · ${record.shop}`, margin + 16, y + 40)
+
+      doc.setFontSize(8)
+      doc.setTextColor(55, 65, 81)
+      doc.text(notes, margin + 16, y + 62)
+
+      y += cardHeight + 12
+    })
+  }
+
+  y = ensurePdfSpace(doc, y, 52, margin)
+  doc.setDrawColor(229, 231, 235)
+  doc.setFillColor(249, 250, 251)
+  doc.roundedRect(margin, y, contentWidth, 48, 8, 8, "FD")
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(9)
+  doc.setTextColor(17, 24, 39)
+  doc.text("Backend is being simulated.", margin + 14, y + 18)
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(8)
+  doc.setTextColor(75, 85, 99)
+  doc.text(
+    "This report was generated from local mock data in the CarMate UI prototype.",
+    margin + 14,
+    y + 34
+  )
+
+  addPdfFooters(doc)
+  doc.save(`carmate-${vehicle.year}-${vehicle.make}-${vehicle.model}-report.pdf`)
+}
+
+function drawReportHeader(doc: jsPDF, vehicle: Vehicle, pageWidth: number) {
+  doc.setFillColor(17, 24, 39)
+  doc.rect(0, 0, pageWidth, 92, "F")
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(22)
+  doc.setTextColor(255, 255, 255)
+  doc.text("CarMate service report", 42, 38)
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(10)
+  doc.setTextColor(209, 213, 219)
+  doc.text(`${vehicle.year} ${vehicle.make} ${vehicle.model}`, 42, 58)
+  doc.text("Maintenance history · mechanic handoff · resale backup", 42, 74)
+}
+
+function drawPdfLabelValue(
+  doc: jsPDF,
+  label: string,
+  value: string,
+  x: number,
+  y: number
+) {
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(7.5)
+  doc.setTextColor(107, 114, 128)
+  doc.text(label.toUpperCase(), x, y)
+  doc.setFont("helvetica", "bold")
+  doc.setFontSize(9)
+  doc.setTextColor(17, 24, 39)
+  doc.text(value, x, y + 12)
+}
+
+function drawEmptyPdfState(
+  doc: jsPDF,
+  message: string,
+  x: number,
+  y: number,
+  width: number
+) {
+  doc.setDrawColor(229, 231, 235)
+  doc.setFillColor(249, 250, 251)
+  doc.roundedRect(x, y, width, 54, 8, 8, "FD")
+  doc.setFont("helvetica", "normal")
+  doc.setFontSize(9)
+  doc.setTextColor(75, 85, 99)
+  doc.text(message, x + 14, y + 30)
+}
+
+function ensurePdfSpace(doc: jsPDF, y: number, neededHeight: number, margin: number) {
+  const pageHeight = doc.internal.pageSize.getHeight()
+
+  if (y + neededHeight <= pageHeight - margin) {
+    return y
+  }
+
+  doc.addPage()
+
+  return margin
+}
+
+function addPdfFooters(doc: jsPDF) {
+  const pageCount = doc.getNumberOfPages()
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page)
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(7.5)
+    doc.setTextColor(107, 114, 128)
+    doc.text("CarMate · UI/UX prototype report", 42, pageHeight - 24)
+    doc.text(`Page ${page} of ${pageCount}`, pageWidth - 82, pageHeight - 24)
+  }
 }
 
 function csvEscape(value: string) {
